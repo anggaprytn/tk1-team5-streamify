@@ -1,8 +1,5 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { useRecoilValue,  } from "recoil";
-import { listVideosState } from "~/recoil/store";
-
 import EditModal from "./EditModal";
 
 function DeleteModal({ isOpen, onClose, onDelete }) {
@@ -54,12 +51,11 @@ function DeleteModal({ isOpen, onClose, onDelete }) {
 }
 
 export function VideoList() {
-  const [videos, setVideos] = useRecoilValue(listVideosState);
-  const [editVideo, setEditVideo] = useState(null);
-  const [editTitle, setEditTitle] = useState("");
-  const [editDesc, setEditDesc] = useState("");
+  const [videos, setVideos] = useState([]);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [videoToDelete, setVideoToDelete] = useState(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [videoToEdit, setVideoToEdit] = useState(null);
 
   // Update handleDelete function to open the delete modal
   const handleDelete = (videoId) => {
@@ -73,27 +69,23 @@ export function VideoList() {
     setVideoToDelete(null);
   };
 
-  // Add a function to confirm deletion of the video
-
-  
+  const handleEdit = (video) => {
+    setVideoToEdit(video);
+    setIsEditModalOpen(true);
+  };
 
   const handleCloseEditModal = () => {
-    setEditVideo(null);
+    setIsEditModalOpen(false);
+    setVideoToEdit(null);
   };
 
- 
-
-  const updateVideo = async (videoId, title, description) => {
-    try {
-      await axios.post(`https://binus.masuk.id/api/video/${videoId}`, {
-        title,
-        description,
-      });
-    } catch (error) {
-      console.error("Error editing video:", error);
-    }
+  const handleSaveEdit = () => {
+    // Add logic to update the video list with the updated video
+    // For now, just close the modal
+    handleCloseEditModal();
   };
 
+  // Add a function to confirm deletion of the video
   const deleteVideo = async (videoId) => {
     try {
       await axios.delete(`https://binus.masuk.id/api/video/${videoId}`);
@@ -102,23 +94,10 @@ export function VideoList() {
     }
   };
 
-  const handleEdit = async () => {video) => {
-    await updateVideo(video.id, video.title, video.description);
-    setEditVideo(video);
-    setEditTitle(video.title);
-    setEditDesc(video.description);
-    handleCloseEditModal();
-  };
-
-  const handleSaveEdit = = async () => {) => {
-    await updateVideo(editVideo.id, editTitle, editDesc);
-    handleCloseEditModal();
-  };
-
   const handleConfirmDelete = async () => {
-    await deleteVideo(videoToDelete);
     setVideos(videos.filter((video) => video.id !== videoToDelete));
     handleCloseDeleteModal();
+    await deleteVideo(videoToDelete);
   };
 
   useEffect(() => {
@@ -138,21 +117,17 @@ export function VideoList() {
 
   return (
     <>
+      <EditModal
+        isOpen={isEditModalOpen}
+        onClose={handleCloseEditModal}
+        onSave={handleSaveEdit}
+        video={videoToEdit || { title: "", description: "" }}
+      />
       <DeleteModal
         isOpen={isDeleteModalOpen}
         onClose={handleCloseDeleteModal}
         onDelete={handleConfirmDelete}
       />
-      {editVideo && (
-        <EditModal
-          video={editVideo}
-          onClose={handleCloseEditModal}
-          onSave={(videoId, title, description) => {
-            updateVideo(videoId, title, description);
-            handleCloseEditModal();
-          }}
-        />
-      )}
       <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {videos.map((video) => (
           <li key={video.id} className="bg-white shadow-lg rounded-lg p-4">

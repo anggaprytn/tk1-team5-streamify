@@ -1,12 +1,10 @@
 import { useState } from "react";
 import axios from "axios";
 import UploadModal from "./UploadModal"; // Import the UploadModal component
-import { useRecoilValue } from "recoil";
-import { listVideosState } from "~/recoil/store";
 
 export function VideoUploader() {
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
-  const [videos, setVideos] = useRecoilValue(listVideosState);
+  const [videos, setVideos] = useState([]);
 
   const handleSubmit = async (title, description, video) => {
     const formData = new FormData();
