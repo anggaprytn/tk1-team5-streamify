@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { useRecoilValue,  } from "recoil";
+import { listVideosState } from "~/recoil/store";
 
 import EditModal from "./EditModal";
 
@@ -52,39 +54,7 @@ function DeleteModal({ isOpen, onClose, onDelete }) {
 }
 
 export function VideoList() {
-  let VideoList2 = VideoList;
-  const [videos, setVideos] = useState([
-    {
-      id: 1,
-      title: "Video 1",
-      desc: "Description of Video 1",
-      url: "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
-    },
-    {
-      id: 2,
-      title: "Video 2",
-      desc: "Description of Video 2",
-      url: "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
-    },
-    {
-      id: 3,
-      title: "Video 3",
-      desc: "Description of Video 3",
-      url: "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
-    },
-    {
-      id: 4,
-      title: "Video 4",
-      desc: "Description of Video 4",
-      url: "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
-    },
-    {
-      id: 5,
-      title: "Video 5",
-      desc: "Description of Video 5",
-      url: "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4",
-    },
-  ]);
+  const [videos, setVideos] = useRecoilValue(listVideosState);
   const [editVideo, setEditVideo] = useState(null);
   const [editTitle, setEditTitle] = useState("");
   const [editDesc, setEditDesc] = useState("");
@@ -104,31 +74,67 @@ export function VideoList() {
   };
 
   // Add a function to confirm deletion of the video
-  const handleConfirmDelete = () => {
-    setVideos(videos.filter((video) => video.id !== videoToDelete));
-    handleCloseDeleteModal();
-  };
 
-  const handleEdit = (video) => {
-    setEditVideo(video);
-    setEditTitle(video.title);
-    setEditDesc(video.desc);
-  };
+  
 
   const handleCloseEditModal = () => {
     setEditVideo(null);
   };
 
-  const handleSaveEdit = () => {
-    setVideos(
-      videos.map((video) =>
-        video.id === editVideo.id
-          ? { ...video, title: editTitle, desc: editDesc }
-          : video
-      )
-    );
+ 
+
+  const updateVideo = async (videoId, title, description) => {
+    try {
+      await axios.post(`https://binus.masuk.id/api/video/${videoId}`, {
+        title,
+        description,
+      });
+    } catch (error) {
+      console.error("Error editing video:", error);
+    }
+  };
+
+  const deleteVideo = async (videoId) => {
+    try {
+      await axios.delete(`https://binus.masuk.id/api/video/${videoId}`);
+    } catch (error) {
+      console.error("Error deleting video:", error);
+    }
+  };
+
+  const handleEdit = async () => {video) => {
+    await updateVideo(video.id, video.title, video.description);
+    setEditVideo(video);
+    setEditTitle(video.title);
+    setEditDesc(video.description);
     handleCloseEditModal();
   };
+
+  const handleSaveEdit = = async () => {) => {
+    await updateVideo(editVideo.id, editTitle, editDesc);
+    handleCloseEditModal();
+  };
+
+  const handleConfirmDelete = async () => {
+    await deleteVideo(videoToDelete);
+    setVideos(videos.filter((video) => video.id !== videoToDelete));
+    handleCloseDeleteModal();
+  };
+
+  useEffect(() => {
+    const fetchVideos = async () => {
+      try {
+        const response = await axios.get(
+          "https://binus.masuk.id/api/videos?page=1"
+        );
+        setVideos(response.data.data);
+      } catch (error) {
+        console.error("Error fetching videos:", error);
+      }
+    };
+
+    fetchVideos();
+  }, []);
 
   return (
     <>
@@ -141,12 +147,8 @@ export function VideoList() {
         <EditModal
           video={editVideo}
           onClose={handleCloseEditModal}
-          onSave={(videoId, title, desc) => {
-            setVideos(
-              videos.map((video) =>
-                video.id === videoId ? { ...video, title, desc } : video
-              )
-            );
+          onSave={(videoId, title, description) => {
+            updateVideo(videoId, title, description);
             handleCloseEditModal();
           }}
         />
@@ -156,14 +158,14 @@ export function VideoList() {
           <li key={video.id} className="bg-white shadow-lg rounded-lg p-4">
             <div className="relative" style={{ paddingBottom: "56.25%" }}>
               <video
-                src={video.url}
+                src={`https://binus.masuk.id/storage/videos/${video.video}`}
                 controls
                 preload="metadata"
                 className="absolute top-0 left-0 w-full h-full object-cover rounded-t-lg"
               ></video>
             </div>
             <h3 className="text-xl font-semibold mt-2">{video.title}</h3>
-            <p className="text-gray-600">{video.desc}</p>
+            <p className="text-gray-600">{video.description}</p>
             <div className="flex mt-4 space-x-2">
               <button
                 onClick={() => handleEdit(video)}

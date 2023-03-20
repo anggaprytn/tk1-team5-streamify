@@ -1,9 +1,12 @@
 import { useState } from "react";
 import axios from "axios";
 import UploadModal from "./UploadModal"; // Import the UploadModal component
+import { useRecoilValue } from "recoil";
+import { listVideosState } from "~/recoil/store";
 
 export function VideoUploader() {
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
+  const [videos, setVideos] = useRecoilValue(listVideosState);
 
   const handleSubmit = async (title, description, video) => {
     const formData = new FormData();
@@ -13,7 +16,7 @@ export function VideoUploader() {
 
     try {
       const response = await axios.post(
-        "http://localhost:8000/api/video",
+        "http://binus.masuk.id/api/video",
         formData,
         {
           headers: {
@@ -22,6 +25,14 @@ export function VideoUploader() {
         }
       );
       if (response.data.message) {
+        try {
+          const response = await axios.get(
+            "https://binus.masuk.id/api/videos?page=1"
+          );
+          setVideos(response.data.data);
+        } catch (error) {
+          console.error("Error fetching videos:", error);
+        }
         return { message: response.data.message };
       } else {
         throw new Error("An unknown error occurred.");

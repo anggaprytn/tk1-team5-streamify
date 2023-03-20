@@ -2,7 +2,7 @@ import React from "react";
 
 const EditModal = ({ video, onClose, onSave }) => {
   const [editTitle, setEditTitle] = React.useState(video.title);
-  const [editDesc, setEditDesc] = React.useState(video.desc);
+  const [editDesc, setEditDesc] = React.useState(video.description);
   const [editUrl, setEditUrl] = React.useState(video.url);
 
   const handleSave = () => {

@@ -38,6 +38,11 @@ const UploadModal = ({ onClose, onSubmit }) => {
         ></div>
         <div className="bg-white p-6 w-full max-w-md rounded-lg shadow-md z-10">
           <h2 className="text-xl font-semibold mb-4">Upload Video</h2>
+          {isLoading && (
+            <div className="flex justify-center items-center my-4">
+              <div className="loader ease-linear rounded-full border-4 border-transparent border-t-blue-500 h-12 w-12 animate-spin"></div>
+            </div>
+          )}
           {responseMessage && (
             <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
               {responseMessage}
